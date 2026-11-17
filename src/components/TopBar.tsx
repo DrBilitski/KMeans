@@ -6,7 +6,7 @@ export function ModeSelector({ value, onChange }: { value: Mode; onChange: (m: M
   const modes: [Mode, string, string][] = [
     ['explorer', '🎯 Explorer', 'The k-means explorer with prepared datasets and guided scenarios'],
     ['customers', '🛒 Customers', 'Use case 1: customer segmentation'],
-    ['images', '🖼️ Images', 'Use case 2: image compression by limiting colors (coming soon)'],
+    ['images', '🖼️ Images', 'Use case 2: image compression by limiting colors'],
   ];
   return (
     <div className="algo" role="radiogroup" aria-label="Mode">

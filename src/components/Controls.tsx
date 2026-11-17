@@ -1,8 +1,24 @@
 import { useEffect } from 'react';
-import { KController, SPEEDS } from '../useKMeans';
+import { SPEEDS } from '../useKMeans';
+
+/** What the control bar needs; both the 2-D explorer and the image mode provide it. */
+export interface ControlActions {
+  playing: boolean;
+  speed: number;
+  setSpeed: (n: number) => void;
+  play: () => void;
+  pause: () => void;
+  nextStep: () => void;
+  nextPhase: () => void;
+  nextIteration: () => void;
+  runToConvergence: () => void;
+  restart: () => void;
+  reset: () => void;
+  setInspected: (i: number | null) => void;
+}
 
 /** Control bar and keyboard shortcuts, laid out like the Q-Learning Explorer's. */
-export function Controls({ ctl, blocked }: { ctl: KController; blocked: boolean }) {
+export function Controls({ ctl, blocked, hidePhase = false }: { ctl: ControlActions; blocked: boolean; hidePhase?: boolean }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
@@ -39,9 +55,11 @@ export function Controls({ ctl, blocked }: { ctl: KController; blocked: boolean 
         <button className="btn btn-step" onClick={ctl.nextStep} disabled={blocked} title="Advance exactly one microstep (→ or N)">
           ▸ Next Step
         </button>
-        <button className="btn" onClick={ctl.nextPhase} disabled={blocked} title="Finish the current assignment or update step (P)">
-          ⏩ Next Phase
-        </button>
+        {!hidePhase && (
+          <button className="btn" onClick={ctl.nextPhase} disabled={blocked} title="Finish the current assignment or update step (P)">
+            ⏩ Next Phase
+          </button>
+        )}
         <button className="btn" onClick={ctl.nextIteration} disabled={blocked} title="Finish this iteration: assignment + update + convergence check (I)">
           ⏭ Next Iteration
         </button>
@@ -63,7 +81,7 @@ export function Controls({ ctl, blocked }: { ctl: KController; blocked: boolean 
         <b>{SPEEDS[ctl.speed].label}</b>
       </label>
       <div className="kbd-hint">
-        <kbd>Space</kbd> play/pause · <kbd>→</kbd> step · <kbd>P</kbd> phase · <kbd>I</kbd> iteration · <kbd>C</kbd> converge
+        <kbd>Space</kbd> play/pause · <kbd>→</kbd> step · {!hidePhase && <><kbd>P</kbd> phase · </>}<kbd>I</kbd> iteration · <kbd>C</kbd> converge
       </div>
     </div>
   );

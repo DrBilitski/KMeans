@@ -63,7 +63,7 @@ export function LineChart({
       )}
       {xTicks ? (
         xTicks.map((t, i) =>
-          i % tickEvery === 0 || i === xTicks.length - 1 ? (
+          (i % tickEvery === 0 && xTicks.length - 1 - i >= Math.max(1, tickEvery * 0.75)) || i === xTicks.length - 1 ? (
             <text key={i} x={sx(i)} y={H - 16} textAnchor="middle" className={`chart-tick ${i === highlight ? 'tick-on' : ''}`}>
               {t}
             </text>

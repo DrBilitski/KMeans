@@ -13,7 +13,8 @@ import { InitPanel } from './components/InitPanel';
 import { DataPanel, ParamsPanel, ScenariosPanel } from './components/InstructorPanels';
 import { PlotDefs, PlotToggles, ScatterPlot } from './components/ScatterPlot';
 import { CustomerDataPanel, ScalingSwitch, SegmentProfilesPanel } from './components/CustomerPanels';
-import { ImageCompressionStub } from './components/ImageCompression';
+import { ImageView } from './components/ImageCompression';
+import { useImageKMeans } from './useImageKMeans';
 import { Mode, ModeSelector, TopBar, TopStat } from './components/TopBar';
 import { Panel } from './components/ui';
 import { buildCustomerState } from './engine/useCases';
@@ -28,23 +29,16 @@ const PHASE_NAMES = { init: 'Initialize', assign: 'Assignment', update: 'Update'
 export default function App() {
   const explorer = useKMeans();
   const customers = useKMeans(() => buildCustomerState(true));
+  const images = useImageKMeans();
   const [mode, setMode] = useState<Mode>('explorer');
   const switchTo = (m: Mode) => {
     explorer.pause();
     customers.pause();
+    images.pause();
     setMode(m);
   };
   const selector = <ModeSelector value={mode} onChange={switchTo} />;
-  if (mode === 'images') {
-    return (
-      <div className="app">
-        <TopBar subtitle="Use case 2: fewer colors, smaller images" badge="USE CASE 2" guided playing={false} modeSelector={selector}>
-          <span />
-        </TopBar>
-        <ImageCompressionStub />
-      </div>
-    );
-  }
+  if (mode === 'images') return <ImageView ctl={images} modeSelector={selector} />;
   return mode === 'explorer' ? <Dashboard key="explorer" ctl={explorer} mode={mode} modeSelector={selector} /> : <Dashboard key="customers" ctl={customers} mode={mode} modeSelector={selector} />;
 }
 

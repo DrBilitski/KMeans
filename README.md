@@ -28,7 +28,12 @@ Switch modes in the top bar. Each mode keeps its own clustering state.
 - **🛒 Customers** (use case 1): customer segmentation. 45 grocery customers clustered on spend per visit and
   visits per month. Coupon % is shown but not used, and the Segment Profiles panel names the groups afterwards.
   The **Scaled / Not scaled** switch shows why features must be scaled: without scaling, dollars drown out visits.
-- **🖼️ Images** (use case 2): image compression by limiting colors. Placeholder for now.
+- **🖼️ Images** (use case 2): image compression by color reduction. Every pixel is a point [R, G, B];
+  k-means finds k palette colors (the centroids) and repaints each pixel with its centroid's color.
+  Shows the original and compressed images, a rotatable 3-D color cube, the palette with its mean
+  calculations, per-pixel distances (click a pixel), file sizes (24-bit vs. indexed palette), and a
+  2 / 6 / 10 / 20-color comparison. Built-in images (sunset, flat poster, rainbow) or upload your own;
+  uploads are processed in the browser and shrunk to fit 400 × 300.
 
 ## Teaching controls
 
@@ -54,6 +59,7 @@ With **Manual** initialization, clicks place the centroids instead.
   - `datasets.ts` / `datasetCoords.ts` — prepared datasets as literal coordinates (generated once by `scripts/gen-datasets.mjs`)
   - `elbow.ts`, `restarts.ts` — batch runs through the same state machine
   - `scenarios.ts` — guided scenarios A–I
+  - `imageKMeans.ts`, `sampleImages.ts` — 3-D (RGB) k-means for image compression and the built-in images
   - `useCases.ts` — customer-segmentation data (generated once by `scripts/gen-customers.mjs`), scaling and segment profiles
   - `rng.ts`, `format.ts` — seeded RNG and number formatting (from the Q-Learning Explorer)
 - `src/useKMeans.ts` — play / pause / speed hook
