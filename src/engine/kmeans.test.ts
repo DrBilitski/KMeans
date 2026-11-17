@@ -306,7 +306,7 @@ describe('algorithm properties', () => {
   it('editing data resets the clustering but keeps k and the initialization method', () => {
     let s = solve(setParams(createInitialState(), { k: 4, init: 'random' }));
     s = addPoint(s, { x: 3.14159, y: 2.71828 });
-    expect(s.points.at(-1)).toMatchObject({ x: 3.1, y: 2.7, label: 'P31' });
+    expect(s.points[s.points.length - 1]).toMatchObject({ x: 3.1, y: 2.7, label: 'P31' });
     expect(s.centroids).toHaveLength(0);
     expect(s.params).toMatchObject({ k: 4, init: 'random' });
     s = removePoint(s, 0);

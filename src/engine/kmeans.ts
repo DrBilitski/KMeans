@@ -545,7 +545,7 @@ function distanceSentence(s: KState, dc: DistanceCalc): string {
   const w = dc.winner;
   if (dc.tied.length > 1) {
     const names = listJoin(dc.tied.map(cName));
-    return `${p.label} at ${fmtPoint(p)} is ${parts}. Tie: ${names} are all ${fmt2(dc.rows[w].d)} away. Ties go to the lower-numbered centroid, so ${p.label} joins cluster ${w + 1}.`;
+    return `${p.label} at ${fmtPoint(p)} is ${parts}. Tie: ${names} are ${dc.tied.length === 2 ? 'both' : 'all'} ${fmt2(dc.rows[w].d)} away. Ties go to the lower-numbered centroid, so ${p.label} joins cluster ${w + 1}.`;
   }
   return `${p.label} at ${fmtPoint(p)} is ${parts}. ${cName(w)} is nearest, so ${p.label} joins cluster ${w + 1}.`;
 }
