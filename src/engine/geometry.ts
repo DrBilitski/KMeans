@@ -12,6 +12,8 @@ export interface Pt {
 export interface DataPoint extends Pt {
   /** Stable label shown to students (P1, P2, … or A–G). */
   label: string;
+  /** Use cases: extra features that are shown but NOT used for clustering (e.g. coupon %). */
+  extra?: Record<string, number>;
 }
 
 /** Plane bounds: both axes run from 0 to 10. */

@@ -2,6 +2,7 @@ import { cName, fmt2, fmtCentroid, fmtCoord, fmtInertia, fmtPoint } from '../eng
 import { DistanceCalc, MeanCalc } from '../engine/geometry';
 import { KState } from '../engine/kmeans';
 import { CentroidTag, clusterColor } from './clusters';
+import { describeReal } from './ScatterPlot';
 
 /** Which calculation the panel is showing (used for its title). */
 export function calcMode(s: KState, inspect: DistanceCalc | null): 'inspect' | 'distance' | 'mean' | 'check' | 'intro' {
@@ -28,6 +29,7 @@ export function DistanceTable({ s, dc, reveal }: { s: KState; dc: DistanceCalc; 
     <div className="dcalc">
       <div className="calc-head">
         Point <b>{p.label}</b> = <span className="mono">{fmtPoint(p)}</span>
+        {s.units && <span className="real-note"> ({describeReal(s.units, p)}). Distances use the plotted {s.units.scaled ? 'scaled' : 'unscaled'} values.</span>}
       </div>
       {dc.rows.map((r) => {
         const win = reveal && r.centroid === dc.winner;
@@ -95,6 +97,7 @@ function MeanBlock({ s, m, stage }: { s: KState; m: MeanCalc; stage: 'gather' | 
           </div>
           <div className={`calc-verdict ${stage === 'move' ? 'moved' : ''}`}>
             <CentroidTag j={j} /> moves from <span className="mono">{fmtCentroid(m.from)}</span> to <b className="mono">{fmtCentroid(m.to)}</b>
+            {s.units && <span className="real-note"> = the average customer in this cluster: {describeReal(s.units, m.to)}</span>}
           </div>
         </>
       )}

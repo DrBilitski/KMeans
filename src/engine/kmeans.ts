@@ -101,6 +101,23 @@ export interface CheckRecord {
   cutoff: boolean;
 }
 
+/** One plotted axis of a use case: real value = plane coordinate × perUnit. */
+export interface AxisUnits {
+  name: string;
+  /** Formats a real value, e.g. 48 → "$48". */
+  prefix: string;
+  suffix: string;
+  perUnit: number;
+}
+
+/** Real-world units for a use case's data (null in the plain explorer). */
+export interface UnitsView {
+  id: string;
+  scaled: boolean;
+  x: AxisUnits;
+  y: AxisUnits;
+}
+
 export interface ScenarioInfo {
   id: string;
   letter: string;
@@ -155,6 +172,8 @@ export interface KState {
   explanation: string;
   tick: number;
   scenario: ScenarioInfo | null;
+  /** Real-world units (use cases only). Purely for display; the algorithm uses x and y. */
+  units: UnitsView | null;
 }
 
 // ---------------------------------------------------------------- helpers
@@ -249,6 +268,7 @@ export function createInitialState(seed = DEFAULT_SEED): KState {
     explanation: '',
     tick: 0,
     scenario: null,
+    units: null,
   } as unknown as KState);
   return { ...base, explanation: readyExplanation(base) };
 }

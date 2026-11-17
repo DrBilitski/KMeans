@@ -1790,3 +1790,84 @@ kbd {
 @media (max-width: 1500px) {
   .controls .kbd-hint { display: none; }
 }
+.axis-titles text { font-size: 14px; font-weight: 800; fill: var(--p800); }
+.real { font-size: 0.8rem; white-space: nowrap; color: var(--ink); font-weight: 700; }
+.real .cpn { color: var(--muted); }
+.real-note { font-size: 0.85rem; font-weight: 700; color: #854d0e; }
+.algo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.algo-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+}
+.algo-buttons {
+  display: flex;
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 999px;
+  padding: 3px;
+}
+.algo-buttons button {
+  border: none;
+  background: transparent;
+  color: white;
+  font-weight: 900;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.algo-buttons button.on {
+  background: var(--y400);
+  color: var(--p900);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.algo-buttons button {
+  border: none;
+  background: transparent;
+  color: white;
+  font-weight: 900;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.algo-buttons button.on {
+  background: var(--y400);
+  color: var(--p900);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- use cases ---------- */
+.algo { flex: none; }
+.uc-banner { border-color: var(--teal); background: #effcf9; flex-wrap: nowrap; }
+.uc-banner b { color: #0f766e; white-space: nowrap; }
+.scaling-switch { flex: none; }
+.scaling-switch button { white-space: nowrap; padding: 0.25rem 0.7rem; }
+.uc-p { margin: 0; font-size: 0.9rem; }
+.feature-table, .profile-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.feature-table th, .profile-table th { text-align: left; color: var(--p800); border-bottom: 2px solid var(--p200); padding: 0.15rem 0.35rem; }
+.feature-table td, .profile-table td { padding: 0.2rem 0.35rem; border-bottom: 1px solid var(--p100); }
+.profile-table td { font-size: 0.95rem; }
+.pname { font-weight: 900; color: var(--p800); }
+.range { font-size: 0.75rem; color: var(--muted); }
+.range-wide { color: var(--red); font-weight: 800; }
+.profiles { display: flex; flex-direction: column; gap: 0.5rem; }
+.instructor .area-profiles { grid-column: span 1; }
+.stub { margin-top: 0.8rem; }
+.stub-body { font-size: 1.1rem; line-height: 1.5; max-width: 60rem; padding: 0.5rem; }
+.stub-badge { display: inline-block; background: var(--y300); color: var(--p900); font-weight: 900; border-radius: 999px; padding: 0.2rem 0.8rem; letter-spacing: 0.06em; }
+.range { white-space: nowrap; }
+.paction { font-size: 0.82rem; color: var(--muted); font-weight: 700; }
+.profile-table th { white-space: nowrap; }
+.instructor-uc .area-profiles { grid-column: span 2; }
+.instructor-uc .area-elbow { grid-column: span 1; }
+@media (max-width: 1300px) {
+  .instructor-uc .area-elbow { grid-column: span 2; }
+}

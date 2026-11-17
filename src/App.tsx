@@ -12,15 +12,45 @@ import { ElbowPanel, InertiaPanel, RestartsPanel } from './components/InertiaPan
 import { InitPanel } from './components/InitPanel';
 import { DataPanel, ParamsPanel, ScenariosPanel } from './components/InstructorPanels';
 import { PlotDefs, PlotToggles, ScatterPlot } from './components/ScatterPlot';
-import { TopBar, TopStat } from './components/TopBar';
+import { CustomerDataPanel, ScalingSwitch, SegmentProfilesPanel } from './components/CustomerPanels';
+import { ImageCompressionStub } from './components/ImageCompression';
+import { Mode, ModeSelector, TopBar, TopStat } from './components/TopBar';
 import { Panel } from './components/ui';
-import { useKMeans } from './useKMeans';
+import { buildCustomerState } from './engine/useCases';
+import { KController, useKMeans } from './useKMeans';
 
 const PHASE_NAMES = { init: 'Initialize', assign: 'Assignment', update: 'Update', check: 'Check' };
 
+/**
+ * Each mode keeps its own clustering state at all times (as the Q-Learning
+ * Explorer keeps both learning modes), so switching never loses a run.
+ */
 export default function App() {
-  const ctl = useKMeans();
+  const explorer = useKMeans();
+  const customers = useKMeans(() => buildCustomerState(true));
+  const [mode, setMode] = useState<Mode>('explorer');
+  const switchTo = (m: Mode) => {
+    explorer.pause();
+    customers.pause();
+    setMode(m);
+  };
+  const selector = <ModeSelector value={mode} onChange={switchTo} />;
+  if (mode === 'images') {
+    return (
+      <div className="app">
+        <TopBar subtitle="Use case 2: fewer colors, smaller images" badge="USE CASE 2" guided playing={false} modeSelector={selector}>
+          <span />
+        </TopBar>
+        <ImageCompressionStub />
+      </div>
+    );
+  }
+  return mode === 'explorer' ? <Dashboard key="explorer" ctl={explorer} mode={mode} modeSelector={selector} /> : <Dashboard key="customers" ctl={customers} mode={mode} modeSelector={selector} />;
+}
+
+function Dashboard({ ctl, mode, modeSelector }: { ctl: KController; mode: Mode; modeSelector: React.ReactNode }) {
   const s = ctl.state;
+  const useCase = mode === 'customers';
   const [toggles, setToggles] = useState<PlotToggles>({ territory: true, lines: false, trails: true, labels: true });
 
   const stepMs = ctl.playing ? ctl.delay : 900;
@@ -36,7 +66,7 @@ export default function App() {
   const placing = s.status === 'init' && s.params.init === 'manual' && s.centroids.length < s.params.k && s.manualQueue.length === 0;
   const onEmptyClick = (p: { x: number; y: number }) => {
     if (placing && s.points.length > 0) ctl.placeCentroid(p);
-    else ctl.addPoint(p);
+    else if (!useCase) ctl.addPoint(p);
   };
 
   const micro = MICROSTEPS.find((m) => m.phases.includes(s.phase));
@@ -56,14 +86,20 @@ export default function App() {
                 s.phase === 'gather' || s.phase === 'computeMean' || s.phase === 'move' ? ` · C${s.cursor + 1}` : ''
               }`;
   const changed = s.status === 'init' ? '—' : s.iteration === 1 && s.changes.every((c) => c.from === null) ? 'all' : s.changes.filter((c) => c.from !== null).length;
-  const mode = calcMode(s, inspectCalc);
+  const calc = calcMode(s, inspectCalc);
   const scenarioDef = s.scenario ? SCENARIOS.find((x) => x.id === s.scenario!.id) : null;
   const sizes = s.centroids.map((_, j) => s.assign.filter((a) => a === j).length);
 
   return (
     <div className="app" style={{ '--move-ms': `${moveMs}ms`, '--anim-ms': `${animMs}ms` } as CSSProperties}>
       <PlotDefs />
-      <TopBar subtitle="Lloyd’s algorithm, one step at a time" badge={s.scenario ? `GUIDED SCENARIO ${s.scenario.letter}` : 'LIVE CLUSTERING'} guided={!!s.scenario} playing={ctl.playing}>
+      <TopBar
+        subtitle={useCase ? 'Use case 1: customer segmentation' : 'Lloyd’s algorithm, one step at a time'}
+        badge={useCase ? 'USE CASE 1' : s.scenario ? `GUIDED SCENARIO ${s.scenario.letter}` : 'LIVE CLUSTERING'}
+        guided={useCase || !!s.scenario}
+        playing={ctl.playing}
+        modeSelector={modeSelector}
+      >
         <TopStat label="Iteration" value={`${s.iteration}/${s.params.maxIter}`} />
         <TopStat label="Phase" value={isDone(s) ? 'Done' : PHASE_NAMES[HALF_OF[s.phase]]} mid />
         <TopStat label="k" value={s.params.k} />
@@ -71,6 +107,17 @@ export default function App() {
         <TopStat label="Changed" value={changed} />
         <TopStat label="Stage" value={stage} wide />
       </TopBar>
+
+      {useCase && (
+        <div className="scenario-banner uc-banner">
+          <b>🛒 Customer Segmentation</b>
+          <span>
+            Each point is one grocery customer: <b>spend per visit</b> (x) and <b>visits per month</b> (y). Coupon % is shown but not used. K-means must find {s.params.k} groups with no labels; we name
+            them afterwards (see Segment Profiles below).
+          </span>
+          <ScalingSwitch ctl={ctl} />
+        </div>
+      )}
 
       {s.scenario && (
         <div className="scenario-banner">
@@ -117,7 +164,7 @@ export default function App() {
             inspectCalc={inspectCalc}
             toggles={toggles}
             onPointClick={(i) => (placing ? ctl.placeCentroid(s.points[i]) : toggleInspect(i))}
-            onPointRemove={ctl.removePoint}
+            onPointRemove={useCase ? () => undefined : ctl.removePoint}
             onEmptyClick={onEmptyClick}
           />
           <div className="plot-legend">
@@ -145,7 +192,7 @@ export default function App() {
           <InitPanel state={s} />
         </Panel>
 
-        <Panel className="area-calc" title={CALC_TITLES[mode]} icon="🧮">
+        <Panel className="area-calc" title={CALC_TITLES[calc]} icon="🧮">
           <CalcPanel state={s} inspect={inspectCalc} />
         </Panel>
 
@@ -156,16 +203,32 @@ export default function App() {
 
       <Controls ctl={ctl} blocked={isDone(s) || !!waitingReason(s)} />
 
-      <section className="instructor">
-        <Panel className="area-data" title="Data" icon="🗂️">
-          <DataPanel ctl={ctl} />
-        </Panel>
-        <Panel className="area-params" title="Parameters" icon="🎛️">
-          <ParamsPanel ctl={ctl} />
-        </Panel>
-        <Panel className="area-scenarios" title="Guided Demonstrations" icon="🎓">
-          <ScenariosPanel ctl={ctl} />
-        </Panel>
+      <section className={`instructor ${useCase ? 'instructor-uc' : ''}`}>
+        {useCase ? (
+          <>
+            <Panel className="area-data" title="Customer Data & Scaling" icon="🛒">
+              <CustomerDataPanel ctl={ctl} />
+            </Panel>
+            <Panel className="area-params" title="Parameters" icon="🎛️">
+              <ParamsPanel ctl={ctl} />
+            </Panel>
+            <Panel className="area-profiles" title="Segment Profiles" icon="🏷️">
+              <SegmentProfilesPanel ctl={ctl} />
+            </Panel>
+          </>
+        ) : (
+          <>
+            <Panel className="area-data" title="Data" icon="🗂️">
+              <DataPanel ctl={ctl} />
+            </Panel>
+            <Panel className="area-params" title="Parameters" icon="🎛️">
+              <ParamsPanel ctl={ctl} />
+            </Panel>
+            <Panel className="area-scenarios" title="Guided Demonstrations" icon="🎓">
+              <ScenariosPanel ctl={ctl} />
+            </Panel>
+          </>
+        )}
         <Panel className="area-inertia" title="Inertia" icon="📉">
           <InertiaPanel state={s} animMs={animMs} />
         </Panel>

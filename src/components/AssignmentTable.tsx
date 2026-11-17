@@ -1,5 +1,6 @@
 import { useMemo, useRef } from 'react';
-import { fmt2, fmtPoint } from '../engine/format';
+import { fmt2, fmtNum, fmtPoint } from '../engine/format';
+import { toReal } from '../engine/useCases';
 import { distanceTable } from '../engine/geometry';
 import { KState } from '../engine/kmeans';
 import { CentroidTag, Swatch, clusterColor } from './clusters';
@@ -29,6 +30,7 @@ export function AssignmentTable({ state: s, inspected, onRowClick }: { state: KS
           <tr>
             <th>Point</th>
             <th>(x, y)</th>
+            {s.units && <th title="Real values. Coupon % is not used for clustering.">customer</th>}
             {s.centroids.length === 0 ? (
               <th>distances</th>
             ) : (
@@ -59,6 +61,11 @@ export function AssignmentTable({ state: s, inspected, onRowClick }: { state: KS
                   {changedNow.has(i) && <span className="moved-tag" title="Changed cluster this iteration">moved</span>}
                 </td>
                 <td className="xy mono">{fmtPoint(p)}</td>
+                {s.units && (
+                  <td className="real">
+                    ${fmtNum(toReal(s.units.x, p.x))} · {fmtNum(Math.round(toReal(s.units.y, p.y) * 10) / 10)}/mo · <span className="cpn">{p.extra?.coupons ?? '—'}%</span>
+                  </td>
+                )}
                 {s.centroids.length === 0 ? (
                   <td className="dcell muted">—</td>
                 ) : (

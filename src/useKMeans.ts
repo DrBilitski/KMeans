@@ -50,8 +50,8 @@ interface Restarts {
  * Every state change goes through an engine function; the UI never computes
  * distances or means itself. Every command except Play pauses first.
  */
-export function useKMeans() {
-  const [state, setState] = useState<KState>(() => createInitialState());
+export function useKMeans(makeInitial: () => KState = () => createInitialState()) {
+  const [state, setState] = useState<KState>(makeInitial);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(3);
   const [inspected, setInspected] = useState<number | null>(null);
@@ -113,7 +113,12 @@ export function useKMeans() {
     restart: () => pausedDo((s) => restart(s)),
     reset: () => {
       setInspected(null);
-      pausedDo(() => reset());
+      pausedDo(() => makeInitial());
+    },
+    /** Replace the state through an engine function (used by the use-case panels). */
+    apply: (fn: (s: KState) => KState) => {
+      setInspected(null);
+      pausedDo(fn);
     },
     newSeed: () => pausedDo((s) => setSeed(s, Math.floor(Math.random() * 100000))),
     setSeed: (n: number) => pausedDo((s) => setSeed(s, n)),

@@ -1,7 +1,8 @@
 import { MouseEvent, useMemo, useRef } from 'react';
-import { cName, fmt2 } from '../engine/format';
+import { cName, fmt2, fmtNum } from '../engine/format';
 import { DistanceCalc, PLANE_MAX, Pt, voronoiCells } from '../engine/geometry';
-import { KState, waitingReason } from '../engine/kmeans';
+import { KState, UnitsView, waitingReason } from '../engine/kmeans';
+import { fmtReal, realPoint, toReal } from '../engine/useCases';
 import { Marker, clusterColor } from './clusters';
 
 export interface PlotToggles {
@@ -11,11 +12,11 @@ export interface PlotToggles {
   labels: boolean;
 }
 
-const W = 600;
-const H = 592;
-const L = 40;
+const L = 58;
 const T = 12;
 const SIZE = 546;
+const W = L + SIZE + 14;
+const H = T + SIZE + 50;
 const S = SIZE / PLANE_MAX;
 const sx = (x: number) => L + x * S;
 const sy = (y: number) => T + (PLANE_MAX - y) * S;
@@ -101,6 +102,8 @@ export function ScatterPlot({
       >
         <rect x={L} y={T} width={SIZE} height={SIZE} className="plot-bg" />
 
+        <AxisTitles units={s.units} />
+
         {cells.map((poly, j) =>
           poly.length ? (
             <polygon key={j} points={poly.map((q) => `${sx(q.x)},${sy(q.y)}`).join(' ')} fill={clusterColor(j).fill} className="territory" />
@@ -111,12 +114,16 @@ export function ScatterPlot({
           <g key={t}>
             <line x1={sx(t)} x2={sx(t)} y1={T} y2={T + SIZE} className={t === 0 ? 'axis' : 'gridline'} />
             <line x1={L} x2={L + SIZE} y1={sy(t)} y2={sy(t)} className={t === 0 ? 'axis' : 'gridline'} />
-            <text x={sx(t)} y={T + SIZE + 20} textAnchor="middle" className="tick">
-              {t}
-            </text>
-            <text x={L - 8} y={sy(t) + 5} textAnchor="end" className="tick">
-              {t}
-            </text>
+            {(!s.units || t % 2 === 0) && (
+              <text x={sx(t)} y={T + SIZE + 20} textAnchor="middle" className="tick">
+                {s.units ? fmtReal(s.units.x, toReal(s.units.x, t)) : t}
+              </text>
+            )}
+            {(!s.units || t % 2 === 0) && (
+              <text x={L - 8} y={sy(t) + 5} textAnchor="end" className="tick">
+                {s.units ? fmtNum(toReal(s.units.y, t)) : t}
+              </text>
+            )}
           </g>
         ))}
 
@@ -198,7 +205,7 @@ export function ScatterPlot({
                 onPointRemove(i);
               }}
             >
-              <title>{`${p.label} (${p.x}, ${p.y})${a !== null ? ` · cluster ${a + 1}` : ''} · click to inspect, shift-click to remove`}</title>
+              <title>{`${p.label} (${p.x}, ${p.y})${s.units ? ` = ${describeReal(s.units, p)}` : ''}${a !== null ? ` · cluster ${a + 1}` : ''} · click to inspect${s.units ? '' : ', shift-click to remove'}`}</title>
               <circle r={15} className="pt-hit" />
               {members.has(i) && <circle r={13} className="member-ring" stroke={col.dark} />}
               {chosenInit === i && <circle r={17} className="chosen-ring" />}
@@ -236,6 +243,26 @@ export function ScatterPlot({
         )}
       </svg>
     </div>
+  );
+}
+
+export function describeReal(u: UnitsView, p: { x: number; y: number; extra?: Record<string, number> }): string {
+  const r = realPoint(u, p);
+  return `${fmtReal(u.x, r.x)}/visit, ${fmtNum(Math.round(r.y * 10) / 10)} visits/mo${p.extra?.coupons !== undefined ? `, ${p.extra.coupons}% coupons` : ''}`;
+}
+
+function AxisTitles({ units }: { units: UnitsView | null }) {
+  const x = units ? `${units.x.name} ($)${units.scaled ? ' · plotted as $ ÷ 20' : ''}` : 'x';
+  const y = units ? `${units.y.name}${units.scaled ? ' · plotted as visits ÷ 2' : ' (same scale as $!)'}` : 'y';
+  return (
+    <g className="axis-titles">
+      <text x={L + SIZE / 2} y={T + SIZE + 44} textAnchor="middle">
+        {x}
+      </text>
+      <text transform={`translate(16, ${T + SIZE / 2}) rotate(-90)`} textAnchor="middle">
+        {y}
+      </text>
+    </g>
   );
 }
 
